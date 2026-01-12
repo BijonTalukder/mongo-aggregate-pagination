@@ -222,7 +222,7 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ## Support
 
-For issues and questions, please use the [GitHub issue tracker](https://github.com/yourusername/mongo-aggregate-pagination/issues).
+For issues and questions, please use the [GitHub issue tracker](https://github.com/BijonTalukder/mongo-aggregate-pagination/issues).
 
 ```
 
