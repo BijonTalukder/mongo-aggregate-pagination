@@ -1,0 +1,19 @@
+# Source files
+src/
+tsconfig.json
+
+# Development
+.git/
+.gitignore
+*.log
+
+# Testing
+coverage/
+*.test.ts
+
+# Documentation source
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml

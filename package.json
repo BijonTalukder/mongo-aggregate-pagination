@@ -1,0 +1,48 @@
+{
+  "name": "@BijonTalukder/mongo-aggregate-pagination",
+  "version": "1.0.0",
+  "description": "A reusable MongoDB aggregation adapter with built-in pagination support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "mongodb",
+    "mongoose",
+    "pagination",
+    "aggregation",
+    "adapter",
+    "database",
+    "query"
+  ],
+  "author": "Your Name ",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/mongo-aggregate-pagination.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/mongo-aggregate-pagination/issues"
+  },
+  "homepage": "https://github.com/yourusername/mongo-aggregate-pagination#readme",
+  "peerDependencies": {
+    "mongoose": "^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "mongoose": "^8.0.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
