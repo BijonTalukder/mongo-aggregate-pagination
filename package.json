@@ -27,12 +27,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/mongo-aggregate-pagination.git"
+    "url": "https://github.com/BijonTalukder/mongo-aggregate-pagination"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/mongo-aggregate-pagination/issues"
+    "url": "https://github.com/BijonTalukder/mongo-aggregate-pagination/issues"
   },
-  "homepage": "https://github.com/yourusername/mongo-aggregate-pagination#readme",
+  "homepage": "https://github.com/BijonTalukder/mongo-aggregate-pagination#readme",
   "peerDependencies": {
     "mongoose": "^6.0.0 || ^7.0.0 || ^8.0.0"
   },
