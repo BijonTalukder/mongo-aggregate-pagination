@@ -17,7 +17,7 @@ A powerful and type-safe MongoDB aggregation adapter with built-in pagination su
 ## Installation
 
 ```bash
-npm install @yourusername/mongo-aggregate-pagination
+npm install @BijonTalukder/mongo-aggregate-pagination
 ```
 ````
 
@@ -122,9 +122,29 @@ const result = await mongoAdapter.aggregateWithPagination(UserModel, {
     name: 1,
     email: 1,
     createdAt: 1,
-    password: 0, // Exclude sensitive fields
+    password: 0, // Exclude sensitive fields , use either 0 or 1 becouse mongodb rules
   },
 });
+```
+
+### Projection Rules
+
+MongoDB projection follows these rules:
+
+- **Inclusion mode**: Specify fields to include with `1` (other fields automatically excluded)
+- **Exclusion mode**: Specify fields to exclude with `0` (other fields automatically included)
+- **Cannot mix**: You cannot use both `1` and `0` in the same projection (except for `_id`)
+- **Exception**: `_id` can be excluded even when using inclusion mode
+
+**Examples:**
+
+```typescript
+{ name: 1, email: 1 }
+
+{ name: 1, email: 1, _id: 0 }
+
+
+{ password: 0 }
 ```
 
 ### Without Pagination
