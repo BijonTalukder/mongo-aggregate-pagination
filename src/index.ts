@@ -24,10 +24,17 @@ interface PaginatedOptions extends BaseOptions {
   limit?: number | string;
   skipPagination?: false;
 }
+interface NonPaginatedOptionsWithLimit extends BaseOptions {
+  skipPagination?: boolean;
+}
 interface NonPaginatedOptions extends BaseOptions {
   skipPagination: true;
+  limit?: number | string;
 }
-type AggregateOptions = PaginatedOptions | NonPaginatedOptions;
+type AggregateOptions =
+  | PaginatedOptions
+  | NonPaginatedOptions
+  | NonPaginatedOptions;
 
 export interface LookupConfig {
   from: string;
@@ -41,7 +48,7 @@ export class MongoAdapter {
   private parsePositiveInt(
     value: unknown,
     fieldName: string,
-    defaultValue: number
+    defaultValue: number,
   ): number {
     if (value === undefined || value === null || value === "") {
       return defaultValue;
@@ -58,17 +65,22 @@ export class MongoAdapter {
 
   async aggregateWithPagination<T>(
     model: Model<T>,
-    options: NonPaginatedOptions
+    options: NonPaginatedOptions,
   ): Promise<T[]>;
 
   async aggregateWithPagination<T>(
     model: Model<T>,
-    options?: PaginatedOptions
+    options?: PaginatedOptions,
   ): Promise<PaginatedResult<T>>;
 
   async aggregateWithPagination<T>(
     model: Model<T>,
-    options: AggregateOptions = {}
+    options?: NonPaginatedOptionsWithLimit,
+  ): Promise<T[]>;
+
+  async aggregateWithPagination<T>(
+    model: Model<T>,
+    options: AggregateOptions = {},
   ): Promise<PaginatedResult<T> | T[]> {
     const startTime = Date.now();
     const {
@@ -110,7 +122,12 @@ export class MongoAdapter {
     }
 
     if (skipPagination) {
-      return model.aggregate<T>(pipeline).exec();
+      const pipelineWithLimit: PipelineStage[] = [...pipeline];
+      if (options.limit != null) {
+        const limit = this.parsePositiveInt(options.limit, "limit", 0);
+        pipelineWithLimit.push({ $limit: limit });
+      }
+      return model.aggregate<T>(pipelineWithLimit).exec();
     }
     const page = this.parsePositiveInt(options.page, "page", 1);
     const limit = this.parsePositiveInt(options.limit, "limit", 10);
