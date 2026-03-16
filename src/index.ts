@@ -1,4 +1,4 @@
-import { Model, Document, PipelineStage } from "mongoose";
+import { Model, Document, PipelineStage, Types } from "mongoose";
 
 export interface PaginatedResult<T = any> {
   docs: T[];
@@ -35,6 +35,19 @@ type AggregateOptions =
   | PaginatedOptions
   | NonPaginatedOptions
   | NonPaginatedOptions;
+
+// NEW: Cursor pagination result type
+export interface CursorPaginatedResult<T = any> {
+  docs: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+// NEW: Cursor pagination options
+interface CursorPaginationOptions extends BaseOptions {
+  cursor?: string;
+  limit?: number | string;
+}
 
 export interface LookupConfig {
   from: string;
@@ -113,7 +126,22 @@ export class MongoAdapter {
             pipeline: lookup.pipeline || [],
           },
         });
+
+        // Handle unwind
+        if (lookup.unwind) {
+          if (typeof lookup.unwind === "boolean") {
+            pipeline.push({ $unwind: `$${lookup.as}` });
+          } else {
+            pipeline.push({
+              $unwind: {
+                path: `$${lookup.as}`,
+                ...lookup.unwind,
+              },
+            });
+          }
+        }
       });
+
       pipeline.push(...extraStages);
       //! Add sort
       pipeline.push({ $sort: sort });
@@ -131,6 +159,7 @@ export class MongoAdapter {
         }
         return model.aggregate<T>(pipelineWithLimit).exec();
       }
+
       const page = this.parsePositiveInt(options.page, "page", 1);
       const limit = this.parsePositiveInt(options.limit, "limit", 10);
       const skip = (page - 1) * limit;
@@ -157,7 +186,6 @@ export class MongoAdapter {
       console.log(`[MongoAdapter] Aggregation runtime: ${runtimeMs}ms`);
       return {
         docs: data,
-
         totalDocs: total,
         page,
         limit,
@@ -167,9 +195,112 @@ export class MongoAdapter {
       };
     } catch (error) {
       this.handleError(error, options);
+      throw error;
+    }
+  }
+  async aggregateWithCursorPagination<T>(
+    model: Model<T>,
+    options: CursorPaginationOptions = {},
+  ): Promise<CursorPaginatedResult<T>> {
+    const startTime = Date.now();
+    try {
+      const {
+        cursor,
+        limit = 20,
+        sort = { _id: 1 },
+        match = {},
+        lookups = [],
+        project,
+        extraStages = [],
+      } = options;
+      const parsedLimit = this.parsePositiveInt(limit, "limit", 20);
+      const pipeline: PipelineStage[] = [];
+      const cursorMatch = { ...match };
+      if (cursor) {
+        const sortField = Object.keys(sort)[0] || "_id";
+        const sortDirection = sort[sortField];
+
+        if (sortDirection === 1) {
+          cursorMatch[sortField] = { $gt: this.parseCursor(cursor, sortField) };
+        } else {
+          cursorMatch[sortField] = { $lt: this.parseCursor(cursor, sortField) };
+        }
+      }
+      if (Object.keys(cursorMatch).length > 0) {
+        pipeline.push({ $match: cursorMatch });
+      }
+      lookups.forEach((lookup) => {
+        pipeline.push({
+          $lookup: {
+            from: lookup.from,
+            localField: lookup.localField,
+            foreignField: lookup.foreignField,
+            as: lookup.as,
+            pipeline: lookup.pipeline || [],
+          },
+        });
+
+        // Handle unwind
+        if (lookup.unwind) {
+          if (typeof lookup.unwind === "boolean") {
+            pipeline.push({ $unwind: `$${lookup.as}` });
+          } else {
+            pipeline.push({
+              $unwind: {
+                path: `$${lookup.as}`,
+                ...lookup.unwind,
+              },
+            });
+          }
+        }
+      });
+
+      //! Add extra stages
+      pipeline.push(...extraStages);
+
+      //! Add sort
+      pipeline.push({ $sort: sort });
+
+      //! Add project if specified
+      if (project) {
+        pipeline.push({ $project: project });
+      }
+
+      //! Fetch one extra item to determine if there are more results
+      pipeline.push({ $limit: parsedLimit + 1 });
+
+      const results = await model.aggregate<T>(pipeline).exec();
+
+      const hasMore = results.length > parsedLimit;
+      const docs = hasMore ? results.slice(0, parsedLimit) : results;
+
+      //! Generate next cursor
+      let nextCursor: string | null = null;
+      if (hasMore && docs.length > 0) {
+        const lastDoc: any = docs[docs.length - 1];
+        const sortField = Object.keys(sort)[0] || "_id";
+        nextCursor = this.generateCursor(lastDoc[sortField]);
+      }
+
+      const runtimeMs = Date.now() - startTime;
+      console.log(`[MongoAdapter] Cursor pagination runtime: ${runtimeMs}ms`);
+
+      return {
+        docs,
+        nextCursor,
+        hasMore,
+      };
+    } catch (error) {
+    } finally {
     }
   }
 
+  private generateCursor(value: any): string {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return String(value);
+  }
   private handleError(error: any, options: AggregateOptions): void {
     const errorContext = {
       page: options.page,
@@ -198,6 +329,25 @@ export class MongoAdapter {
         context: errorContext,
       });
     }
+  }
+
+  private parseCursor(cursor: string, field: string): any {
+    if (field === "_id" && cursor.match(/^[0-9a-fA-F]{24}$/)) {
+      return new Types.ObjectId(cursor);
+    }
+
+    const dateValue = new Date(cursor);
+    if (!isNaN(dateValue.getTime()) && cursor.includes("-")) {
+      return dateValue;
+    }
+
+    const numValue = Number(cursor);
+    if (!isNaN(numValue) && cursor === String(numValue)) {
+      return numValue;
+    }
+
+    // Return as string
+    return cursor;
   }
 }
 
