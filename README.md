@@ -1,8 +1,8 @@
-# mongoose-aggregate-paginate
+# mongo-aggregate-pagination
 
 A powerful and type-safe MongoDB aggregation adapter with built-in pagination support for Mongoose.
 
-[![npm version](https://img.shields.io/npm/v/mongoose-aggregate-paginate.svg)](https://www.npmjs.com/package/mongoose-aggregate-paginate)
+[![npm version](https://img.shields.io/npm/v/mongo-aggregate-pagination.svg)](https://www.npmjs.com/package/mongo-aggregate-pagination)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -20,7 +20,7 @@ A powerful and type-safe MongoDB aggregation adapter with built-in pagination su
 ## 📦 Installation
 
 ```bash
-npm install mongoose-aggregate-paginate
+npm install mongo-aggregate-pagination
 ```
 
 **Peer Dependencies:**
@@ -30,7 +30,7 @@ npm install mongoose-aggregate-paginate
 ## 🚀 Quick Start
 
 ```typescript
-import { mongoAdapter } from "mongoose-aggregate-paginate";
+import { mongoAdapter } from "mongo-aggregate-pagination";
 import { UserModel } from "./models/User";
 
 // Basic paginated query
@@ -582,9 +582,8 @@ router.get("/users", async (req, res) => {
 
 ```typescript
 import express from "express";
-import { mongoAdapter } from "mongoose-aggregate-paginate";
+import { mongoAdapter } from "mongo-aggregate-pagination";
 import { UserModel } from "./models/User";
-
 const router = express.Router();
 
 router.get("/api/users", async (req, res) => {
@@ -610,7 +609,7 @@ router.get("/api/users", async (req, res) => {
 ```typescript
 // pages/api/posts.ts
 import { NextApiRequest, NextApiResponse } from "next";
-import { mongoAdapter } from "mongoose-aggregate-paginate";
+import { mongoAdapter } from "mongo-aggregate-pagination";
 import { PostModel } from "@/models/Post";
 
 export default async function handler(
@@ -708,7 +707,7 @@ const result = await User.paginate(
   { page: 1, limit: 10, sort: { name: 1 } },
 );
 
-// After (mongoose-aggregate-paginate)
+// After (mongo-aggregate-pagination)
 const result = await mongoAdapter.aggregateWithPagination(UserModel, {
   page: 1,
   limit: 10,
@@ -732,7 +731,7 @@ const [data, total] = await Promise.all([
   Model.countDocuments({ status: "active" }),
 ]);
 
-// After (mongoose-aggregate-paginate)
+// After (mongo-aggregate-pagination)
 const result = await mongoAdapter.aggregateWithPagination(Model, {
   page,
   limit,
@@ -759,12 +758,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 For bugs, questions, or feature requests:
 
-- [GitHub Issues](https://github.com/BijonTalukder/mongoose-aggregate-paginate/issues)
-- [NPM Package](https://www.npmjs.com/package/mongoose-aggregate-paginate)
+- [GitHub Issues](https://github.com/BijonTalukder/mongo-aggregate-pagination/issues)
+- [NPM Package](https://www.npmjs.com/package/mongo-aggregate-pagination)
 
 ## 🌟 Show Your Support
 
-If this package helped you, please give it a ⭐️ on [GitHub](https://github.com/BijonTalukder/mongoose-aggregate-paginate)!
+If this package helped you, please give it a ⭐️ on [GitHub](https://github.com/BijonTalukder/mongo-aggregate-pagination)!
 
 ---
 
